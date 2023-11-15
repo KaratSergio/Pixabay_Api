@@ -6,22 +6,22 @@
 }
 
 .photo-card {
-  width: 600px;
-  height: 480px;
+  width: 420px;
+  height: 320px;
   border: 1px solid black;
   background-color: white;
 }
 
 .photo-card img {
   width: 100%;
-  height: 90%;
+  height: 85%;
   object-fit: cover;
 }
 
 .info {
   display: flex;
   justify-content: center;
-  gap: 60px;
+  gap: 15px;
   font-size: 19px;
 }
 
