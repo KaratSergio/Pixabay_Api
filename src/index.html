@@ -3,22 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Page title</title>
+    <title>goit-js-hw-11</title>
     <link rel="stylesheet" href="./sass/index.scss" />
-    <script type="module" src="./index.js"></script>
   </head>
   <body>
-    <form class="search-form" id="search-form">
-      <input
-        class="search-input"
-        type="text"
-        name="searchQuery"
-        autocomplete="off"
-        placeholder="Search images..."
-      />
-      <button class="search-btn" type="submit">Search</button>
-    </form>
-    <div class="gallery"></div>
-    <button type="button" class="load-more">Load more</button>
+
+    <include src="partials/form.html"></include>
+    <include src="partials/gallery.html"></include>
+
+    <script type="module" src="./index.js"></script>
   </body>
 </html>
