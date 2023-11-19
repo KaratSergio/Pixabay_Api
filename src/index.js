@@ -4,22 +4,54 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
 const gallerySelector = document.querySelector('.gallery');
-const btnLoadMore = document.querySelector('.load-more');
-let pageNumber = 1;
-
+let currentPage = 1;
+let isLoading = false;
+let initialLoad = true;
+let total = 0;
+const imagesPerPage = 40;
 const gallery = new SimpleLightbox('.gallery a', { enableKeyboard: true });
 
-btnLoadMore.style.display = 'none';
+let errorNotified = false;
 
 document.querySelector('.search-form').addEventListener('submit', handleFormSubmit);
-btnLoadMore.addEventListener('click', loadMoreImages);
+window.addEventListener('scroll', handleScroll);
 
-function toggleLoadMoreButton(isVisible) {
-  btnLoadMore.style.display = isVisible ? 'block' : 'none';
-}
+async function handleScroll() {
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
 
-function updatePageNumber(increment = 1) {
-  pageNumber += increment;
+  if (scrollTop + clientHeight >= scrollHeight - 200 && !isLoading && !errorNotified) {
+    try {
+      isLoading = true;
+
+      const { fetchedTotal, photos } = await fetchPhotos(document.querySelector('.search-form input').value.trim(), currentPage);
+      const photoCardsHTML = await renderPhotos(photos);
+
+      if (initialLoad) {
+        clearGallery();
+        appendToGallery(photoCardsHTML);
+        initialLoad = false;
+      } else {
+        appendToGallery(photoCardsHTML);
+      }
+
+      gallery.refresh();
+
+      total = fetchedTotal;
+
+      if (total && currentPage * imagesPerPage >= total) {
+        Notify.info('All images loaded.');
+        errorNotified = true;
+      }
+
+      currentPage += 1;
+    } catch (error) {
+      console.error('Error loading more images:', error.message);
+      Notify.failure("We're sorry, but there was an error loading more images.");
+      errorNotified = true;
+    } finally {
+      isLoading = false;
+    }
+  }
 }
 
 async function handleFormSubmit(e) {
@@ -30,46 +62,31 @@ async function handleFormSubmit(e) {
 
   if (searchQueryValue === '') {
     clearGallery();
-    toggleLoadMoreButton(false);
-    return Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+    return Notify.failure('Please enter a search query.');
   }
 
-  updatePageNumber(-pageNumber + 1);
+  currentPage = 1;
+  initialLoad = true;
+  errorNotified = false;
+
   clearGallery();
   try {
-    const { total, photos } = await fetchPhotos(searchQueryValue);
+    const { fetchedTotal, photos } = await fetchPhotos(searchQueryValue, currentPage);
     const photoCardsHTML = await renderPhotos(photos);
 
     appendToGallery(photoCardsHTML);
-    toggleLoadMoreButton(true);
     gallery.refresh();
+
+    total = fetchedTotal;
 
     Notify.success(`Found ${total} images.`);
   } catch (error) {
-    Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+    console.error('Error handling form submit:', error.message);
+    Notify.failure('Error handling form submit. Please try again.');
   }
 }
 
-async function loadMoreImages() {
-  updatePageNumber();
-  try {
-    const { total, photos } = await fetchPhotos(document.querySelector('.search-form input').value.trim());
-    const photoCardsHTML = await renderPhotos(photos);
-
-    appendToGallery(photoCardsHTML);
-    toggleLoadMoreButton(true);
-    gallery.refresh();
-
-    const { per_page: imagesPerPage } = photos;
-    if (pageNumber * imagesPerPage >= total) {
-      toggleLoadMoreButton(false);
-    }
-  } catch (error) {
-    Notify.failure("We're sorry, but you've reached the end of search results.");
-  }
-}
-
-async function fetchPhotos(query) {
+async function fetchPhotos(query, currentPage) {
   try {
     const response = await axios.get('https://pixabay.com/api/', {
       params: {
@@ -78,24 +95,25 @@ async function fetchPhotos(query) {
         image_type: 'photo',
         orientation: 'horizontal',
         safesearch: true,
-        page: pageNumber,
-        per_page: '40',
+        page: currentPage,
+        per_page: imagesPerPage,
       },
     });
 
-    const { total, hits: photos } = response.data;
+    const { total: fetchedTotal, hits: photos } = response.data;
 
-    if (total === 0) {
-      throw new Error('There are no results for your request.');
+    if (fetchedTotal === 0) {
+      throw new Error('No results found for your request.');
     }
 
-    return { total, photos };
+    return { fetchedTotal, photos };
   } catch (error) {
-    throw new Error('Error fetching data');
+    console.error('Error fetching data:', error.message);
+    throw new Error('Error fetching data. Please try again.');
   }
 }
 
-async function renderPhotos(photos) {
+function renderPhotos(photos) {
   return photos
     .map(photo =>
       `<a href="${photo.largeImageURL}">
@@ -120,4 +138,19 @@ function appendToGallery(photoCardsHTML) {
 function clearGallery() {
   gallerySelector.innerHTML = '';
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
