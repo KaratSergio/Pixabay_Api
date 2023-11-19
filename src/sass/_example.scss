@@ -1,6 +1,6 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: #fff;
   color: #212121;
 }
@@ -10,7 +10,6 @@ a {
   color: inherit;
 }
 
-
 .gallery {
   margin-top: 55px;
   display: flex;
@@ -19,7 +18,6 @@ a {
   justify-content: center;
   flex-basis: calc(100% / 5);
 }
-
 .photo-card {
   width: 350px;
   height: 320px;
@@ -27,31 +25,23 @@ a {
   border-radius: 10px;
   overflow: hidden;
 }
-
 .photo-card img {
   width: 100%;
   height: 85%;
   object-fit: cover;
 }
-
 .info {
   display: flex;
   justify-content: center;
   gap: 15px;
   font-size: 16px;
 }
-
 .info-item {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 0;
 }
-
-.load-more {
-  display: none;
-}
-
 .search-form {
   position: fixed;
   top: 0;
@@ -76,27 +66,14 @@ a {
   width: 120px;
   height: 34px;
 }
-.search-btn,
-.load-more {
+.search-btn {
   font-size: 24px;
   background-color: rgb(248, 248, 154);
   border: none;
   cursor: pointer;
   transition: background-color 1.2s;
 }
-
-.load-more {
-  display: flex;
-  height: 62px;
-  width: 200px;
-  font-weight: 700;
-  margin: 30px auto;
-  border-radius: 100px;
-}
-
 .search-btn:hover,
-.search-btn:active,
-.load-more:hover,
-.load-more:active {
+.search-btn:active {
   background-color: yellowgreen;
 }
