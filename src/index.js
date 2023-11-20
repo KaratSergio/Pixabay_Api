@@ -3,11 +3,10 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { fetchPhotos } from './js/api';
 import { createPhotoCard, appendGallery, clearGallery } from './js/galleryMarkup';
-import { initializeScrollObserver } from './js/scrollLibrary';
 
 const gallerySelector = document.querySelector('.gallery');
 const searchForm = document.querySelector('.search-form');
-const searchInput = searchForm.querySelector('input'); 
+const searchInput = searchForm.querySelector('input');
 
 const gallery = new SimpleLightbox('.gallery a', { enableKeyboard: true });
 
@@ -21,31 +20,27 @@ const state = {
 };
 
 searchForm.addEventListener('submit', handleFormSubmit);
+window.addEventListener('scroll', handleScroll);
 
-initializeScrollObserver(handleScroll);
+let isLoadingMore = false;
 
-async function handleScroll(entries) {
-  if (entries[0].isIntersecting && !state.isLoading && !state.errorNotified) {
+async function handleScroll() {
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+
+  if (scrollTop + clientHeight >= scrollHeight - 200 && !state.isLoading && !state.errorNotified && !isLoadingMore) {
     try {
-      state.isLoading = true;
+      isLoadingMore = true;
 
-      const searchQueryValue = searchInput.value.trim(); 
+      const searchQueryValue = searchInput.value.trim();
       if (!searchQueryValue) {
-        state.isLoading = false;
+        isLoadingMore = false;
         return;
       }
 
       const { fetchedTotal, photos } = await fetchPhotos(searchQueryValue, state.currentPage, state.imagesPerPage);
       const photoCardsHTML = await renderPhotos(photos);
 
-      if (state.initialLoad) {
-        clearGallery(gallerySelector);
-        appendGallery(gallerySelector, photoCardsHTML);
-        state.initialLoad = false;
-      } else {
-        appendGallery(gallerySelector, photoCardsHTML);
-      }
-
+      appendGallery(gallerySelector, photoCardsHTML);
       gallery.refresh();
 
       state.total = fetchedTotal;
@@ -61,7 +56,7 @@ async function handleScroll(entries) {
       Notify.failure("We're sorry, but there was an error loading more images.");
       state.errorNotified = true;
     } finally {
-      state.isLoading = false;
+      isLoadingMore = false;
     }
   }
 }
