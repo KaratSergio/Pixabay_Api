@@ -7,7 +7,7 @@ import { initializeScrollObserver } from './js/scrollLibrary';
 
 const gallerySelector = document.querySelector('.gallery');
 const searchForm = document.querySelector('.search-form');
-const searchInput = searchForm.querySelector('input');
+const searchInput = searchForm.querySelector('input'); 
 
 const gallery = new SimpleLightbox('.gallery a', { enableKeyboard: true });
 
@@ -70,7 +70,6 @@ async function handleFormSubmit(e) {
   e.preventDefault();
 
   const searchQueryValue = searchInput.value.trim();
-
   if (!searchQueryValue) {
     clearGallery(gallerySelector);
     return Notify.failure('Please enter a search query.');
