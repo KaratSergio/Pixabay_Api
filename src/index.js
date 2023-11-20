@@ -3,6 +3,7 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import { fetchPhotos } from './js/api';
 import { createPhotoCard, appendGallery, clearGallery } from './js/galleryMarkup';
+import { initializeScrollObserver } from './js/scrollLibrary';
 
 const gallerySelector = document.querySelector('.gallery');
 const gallery = new SimpleLightbox('.gallery a', { enableKeyboard: true });
@@ -17,18 +18,22 @@ const state = {
 };
 
 document.querySelector('.search-form').addEventListener('submit', handleFormSubmit);
-window.addEventListener('scroll', handleScroll);
 
-async function handleScroll() {
-  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+initializeScrollObserver(handleScroll);
 
-  if (scrollTop + clientHeight >= scrollHeight - 200 && !state.isLoading && !state.errorNotified) {
+async function handleScroll(entries) {
+  if (entries[0].isIntersecting && !state.isLoading && !state.errorNotified) {
     try {
       state.isLoading = true;
 
-      const searchQuery = document.querySelector('.search-form input').value.trim();
-      const { fetchedTotal, photos } = await fetchPhotos(searchQuery, state.currentPage, state.imagesPerPage);
-      const photoCardsHTML = renderPhotos(photos);
+      const searchQueryValue = document.querySelector('.search-form input').value.trim();
+      if (!searchQueryValue) {
+        state.isLoading = false;
+        return;
+      }
+
+      const { fetchedTotal, photos } = await fetchPhotos(searchQueryValue, state.currentPage, state.imagesPerPage);
+      const photoCardsHTML = await renderPhotos(photos);
 
       if (state.initialLoad) {
         clearGallery(gallerySelector);
@@ -64,7 +69,7 @@ async function handleFormSubmit(e) {
   const { elements: { searchQuery } } = e.target;
   const searchQueryValue = searchQuery.value.trim();
 
-  if (searchQueryValue === '') {
+  if (!searchQueryValue) {
     clearGallery(gallerySelector);
     return Notify.failure('Please enter a search query.');
   }
@@ -93,3 +98,4 @@ async function handleFormSubmit(e) {
 function renderPhotos(photos) {
   return photos.map(photo => createPhotoCard(photo)).join('');
 }
+
