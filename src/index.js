@@ -6,6 +6,9 @@ import { createPhotoCard, appendGallery, clearGallery } from './js/galleryMarkup
 import { initializeScrollObserver } from './js/scrollLibrary';
 
 const gallerySelector = document.querySelector('.gallery');
+const searchForm = document.querySelector('.search-form');
+const searchInput = searchForm.querySelector('input');
+
 const gallery = new SimpleLightbox('.gallery a', { enableKeyboard: true });
 
 const state = {
@@ -17,7 +20,7 @@ const state = {
   errorNotified: false,
 };
 
-document.querySelector('.search-form').addEventListener('submit', handleFormSubmit);
+searchForm.addEventListener('submit', handleFormSubmit);
 
 initializeScrollObserver(handleScroll);
 
@@ -26,7 +29,7 @@ async function handleScroll(entries) {
     try {
       state.isLoading = true;
 
-      const searchQueryValue = document.querySelector('.search-form input').value.trim();
+      const searchQueryValue = searchInput.value.trim(); 
       if (!searchQueryValue) {
         state.isLoading = false;
         return;
@@ -66,8 +69,7 @@ async function handleScroll(entries) {
 async function handleFormSubmit(e) {
   e.preventDefault();
 
-  const { elements: { searchQuery } } = e.target;
-  const searchQueryValue = searchQuery.value.trim();
+  const searchQueryValue = searchInput.value.trim();
 
   if (!searchQueryValue) {
     clearGallery(gallerySelector);
